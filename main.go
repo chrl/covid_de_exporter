@@ -25,6 +25,7 @@ type NowData struct {
 type Config struct {
 	configFile string
 	Listen     string `yaml:"listen"`
+	DefaultTTL string `yaml:"defaultTTL"`
 	Metrics    struct {
 		Total  string `yaml:"total"`
 		States []struct {
@@ -37,9 +38,8 @@ type Config struct {
 
 // Measurement represents single measurement
 type Measurement struct {
-	value     string
-	executed  time.Time
-	paramname string
+	value    string
+	executed time.Time
 }
 
 func (c *Config) getConfig() *Config {
@@ -64,7 +64,7 @@ func main() {
 
 	c.getConfig()
 
-	log.Println("Started COVID-Metric exporter")
+	log.Println("Started COVID-DE exporter")
 
 	metrics := map[string]Measurement{}
 
@@ -75,38 +75,52 @@ func main() {
 		}
 	}
 
-	log.Println("All connections initialized")
+	metrics["total"] = Measurement{
+		value:    "0",
+		executed: time.Unix(0, 0),
+	}
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 
 		// Get Totals gauge
 
-		resp, err := http.Get(c.Metrics.Total)
-		if err != nil {
-			log.Println("Error getting total value: ", err.Error())
-		} else {
-
-			_, _ = fmt.Fprint(w, "# TYPE covid_de_total gauge\n")
-
-			res := NowData{}
-			body, err := ioutil.ReadAll(resp.Body)
+		duration, _ := time.ParseDuration(c.DefaultTTL + "s")
+		if time.Now().Unix() > metrics["total"].executed.Add(duration).Unix() {
+			resp, err := http.Get(c.Metrics.Total)
 			if err != nil {
-				log.Println("Error getting value: ", err.Error())
+				log.Println("Error getting total value: ", err.Error())
+			} else {
+
+				_, _ = fmt.Fprint(w, "# TYPE covid_de_total gauge\n")
+
+				res := NowData{}
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					log.Println("Error getting value: ", err.Error())
+				}
+
+				_ = json.Unmarshal(body, &res)
+
+				for jj, kk := range res.CurrentTotals {
+					_, _ = fmt.Fprintf(w, "covid_de_total{type=\"%s\"} %d\n", jj, kk)
+				}
+				fmt.Fprint(w, "\n")
+
+				metrics["total"] = Measurement{
+					value:    string(res.CurrentTotals["cases"]),
+					executed: time.Now(),
+				}
+
 			}
-
-			_ = json.Unmarshal(body, &res)
-
-			for jj, kk := range res.CurrentTotals {
-				_, _ = fmt.Fprintf(w, "covid_de_total{type=\"%s\"} %d\n", jj, kk)
-			}
-			fmt.Fprint(w, "\n")
-
 		}
 
 		_, _ = fmt.Fprint(w, "# TYPE covid_de_states gauge\n")
 
 		for _, metricConfig := range c.Metrics.States {
 
+			if metricConfig.TTL == "" {
+				metricConfig.TTL = c.DefaultTTL
+			}
 			duration, _ := time.ParseDuration(metricConfig.TTL + "s")
 			if time.Now().Unix() > metrics[metricConfig.Name].executed.Add(duration).Unix() {
 
