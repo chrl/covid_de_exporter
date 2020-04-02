@@ -1,0 +1,37 @@
+listen: 0:7070
+defaultTTL: 600
+metrics:
+  total: https://covid19-germany.appspot.com/now
+  states:
+    - name: Baden-Württemberg
+      data: https://covid19-germany.appspot.com/timeseries/DE-BW/cases
+    - name: Bayern
+      data: https://covid19-germany.appspot.com/timeseries/DE-BY/cases
+    - name: Brandenburg
+      data: https://covid19-germany.appspot.com/timeseries/DE-BB/cases
+    - name: Berlin
+      data: https://covid19-germany.appspot.com/timeseries/DE-BE/cases
+    - name: Bremen
+      data: https://covid19-germany.appspot.com/timeseries/DE-HB/cases
+    - name: Hamburg
+      data: https://covid19-germany.appspot.com/timeseries/DE-HH/cases
+    - name: Hessen
+      data: https://covid19-germany.appspot.com/timeseries/DE-HE/cases
+    - name: Mecklenburg-Vorpommern
+      data: https://covid19-germany.appspot.com/timeseries/DE-MV/cases
+    - name: Niedersachsen
+      data: https://covid19-germany.appspot.com/timeseries/DE-NI/cases
+    - name: Nordrhein-Westfalen
+      data: https://covid19-germany.appspot.com/timeseries/DE-NW/cases
+    - name: Rheinland-Pfalz
+      data: https://covid19-germany.appspot.com/timeseries/DE-RP/cases
+    - name: Saarland
+      data: https://covid19-germany.appspot.com/timeseries/DE-SL/cases
+    - name: Sachsen-Anhalt
+      data: https://covid19-germany.appspot.com/timeseries/DE-ST/cases
+    - name: Sachsen
+      data: https://covid19-germany.appspot.com/timeseries/DE-SN/cases
+    - name: Schleswig-Holstein
+      data: https://covid19-germany.appspot.com/timeseries/DE-SH/cases
+    - name: Thüringen
+      data: https://covid19-germany.appspot.com/timeseries/DE-TH/cases
